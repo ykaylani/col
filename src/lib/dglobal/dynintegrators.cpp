@@ -96,6 +96,12 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
     void symeuler(float dt, std::vector<float4x4a>& positions, std::vector<float4x4a>& velocities, std::vector<float4x4a>& forces, std::vector<float4x4a>& masses) {
 
         std::atomic<int> counter = 0;
-        tpool::wd::schedule(psymeuler, std::ref(counter), masses.size(), std::ref(positions), std::ref(velocities), std::ref(forces), std::ref(masses), dt);
+        unsigned int tc = tpool::wd::inittc;
+
+        for (unsigned int i = 0; i < tc; i++) {
+            tpool::wd::schedule(psymeuler, std::ref(counter), masses.size(), std::ref(positions), std::ref(velocities), std::ref(forces), std::ref(masses), dt);
+        }
+
+        tpool::wd::wait();
     }
 }
