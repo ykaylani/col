@@ -1,19 +1,23 @@
 #include "dynintegrators.h"
 #include <vector>
+#include <immintrin.h>
 #include <thread>
 #include <atomic>
-#include "../data/ct.h"
-
-#include <immintrin.h>
-#include <stdexcept>
+#include <cassert>
+#include "../../data/ct.h"
+#include "../dforce/wspace.h"
 
 namespace dintegrators { //Assumption: scalar types contain 4 times the number of particles compared to 4D vector types
 
-    void symeuleri(float dt, float4x4a& positions, float4x4a& velocities, float4x4a& forces, float4x4a& masses, int quarter) {
+    const int callgranularity = 1;
+
+    void symeuleri(__m128& __restrict dt, float4x4a& __restrict positions, float4x4a& __restrict velocities, float4x4a& __restrict forces, float4x4a& __restrict masses, int quarter) {
 
         __m128 velx = _mm_load_ps(velocities.x);
         __m128 vely = _mm_load_ps(velocities.y);
         __m128 velz = _mm_load_ps(velocities.z);
+
+        wsforces::g::apply(forces, wsforces::gmag);
 
         __m128 forx = _mm_load_ps(forces.x);
         __m128 fory = _mm_load_ps(forces.y);
@@ -24,8 +28,6 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
         __m128 posz = _mm_load_ps(positions.z);
 
         __m128 mass;
-
-        __m128 dts = _mm_load1_ps(&dt);
 
         switch (quarter) {
             case 0:
@@ -41,18 +43,18 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 mass = _mm_load_ps(masses.w);
                 break;
             default:
-                throw std::runtime_error("SymeulerI: Quarter out-of-bounds");
+                assert(quarter >= 0 && quarter < 4 && "Quarter out of bounds");
         }
 
-        __m128 ratio = _mm_div_ps(dts, mass);
+        __m128 ratio = _mm_div_ps(dt, mass);
 
         velx = _mm_add_ps(velx, _mm_mul_ps(forx, ratio));
         vely = _mm_add_ps(vely, _mm_mul_ps(fory, ratio));
         velz = _mm_add_ps(velz, _mm_mul_ps(forz, ratio));
 
-        posx = _mm_add_ps(posx, _mm_mul_ps(velx, dts));
-        posy = _mm_add_ps(posy, _mm_mul_ps(vely, dts));
-        posz = _mm_add_ps(posz, _mm_mul_ps(velz, dts));
+        posx = _mm_add_ps(posx, _mm_mul_ps(velx, dt));
+        posy = _mm_add_ps(posy, _mm_mul_ps(vely, dt));
+        posz = _mm_add_ps(posz, _mm_mul_ps(velz, dt));
 
         _mm_store_ps(velocities.x, velx);
         _mm_store_ps(velocities.y, vely);
@@ -66,20 +68,25 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
     void psymeuler(std::atomic<int>& unprocessedblock, int tblocks, std::vector<float4x4a>& positions, std::vector<float4x4a>& velocities, std::vector<float4x4a>& forces, std::vector<float4x4a>& masses, float dt) {
 
         while (true) {
-            int scheduleindex = unprocessedblock.fetch_add(1);
-            if (scheduleindex >= tblocks) break;
+            int scheduleindex = unprocessedblock.fetch_add(callgranularity);
+            if (scheduleindex >= tblocks) { return; }
 
-            int vectoridx = scheduleindex * 4;
+            __m128 dts = _mm_load1_ps(&dt);
 
-            for (int i = 0; i < 4; i++) {
-                int pidx = vectoridx + i;
-                if (pidx >= positions.size()) break;
+            for (int i = 0; i < callgranularity && scheduleindex + i < tblocks; i++) {
 
-                float4x4a& positionblock = positions[pidx];
-                float4x4a& velocitiesblock = velocities[pidx];
-                float4x4a& forcesblock = forces[pidx];
+                int vectoridx = (scheduleindex + i) * 4;
 
-                symeuleri(dt, positionblock, velocitiesblock, forcesblock, masses[scheduleindex], i);
+                for (int j = 0; j < 4; j++) {
+                    int pidx = vectoridx + j;
+                    if (pidx >= positions.size()) break;
+
+                    float4x4a& positionblock = positions[pidx];
+                    float4x4a& velocitiesblock = velocities[pidx];
+                    float4x4a& forcesblock = forces[pidx];
+
+                    symeuleri(dts, positionblock, velocitiesblock, forcesblock, masses[scheduleindex + i], j);
+                }
             }
         }
     }

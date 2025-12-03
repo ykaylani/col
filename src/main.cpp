@@ -1,5 +1,5 @@
 #include <iostream>
-#include "data/rt/time.h"
+#include "lib/sglobal/time.h"
 
 float fixedstep = 20.0f; //in microseconds
 
