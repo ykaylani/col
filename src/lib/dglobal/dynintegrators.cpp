@@ -1,11 +1,13 @@
-#include "dynintegrators.h"
 #include <vector>
 #include <immintrin.h>
 #include <thread>
 #include <atomic>
 #include <cassert>
+#include "dynintegrators.h"
 #include "../../data/ct.h"
 #include "../dforce/wspace.h"
+#include "../bsys/wd.h"
+
 
 namespace dintegrators { //Assumption: scalar types contain 4 times the number of particles compared to 4D vector types
 
@@ -94,16 +96,6 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
     void symeuler(float dt, std::vector<float4x4a>& positions, std::vector<float4x4a>& velocities, std::vector<float4x4a>& forces, std::vector<float4x4a>& masses) {
 
         std::atomic<int> counter = 0;
-        std::vector<std::thread> threads;
-        unsigned n = std::thread::hardware_concurrency();
-        threads.reserve(n);
-
-        for (int i = 0; i < n; i++) {
-            threads.emplace_back(psymeuler, std::ref(counter), masses.size(), std::ref(positions), std::ref(velocities), std::ref(forces), std::ref(masses), dt);
-        }
-
-        for (int i = 0; i < n; i++) {
-            threads[i].join();
-        }
+        tpool::wd::schedule(psymeuler, std::ref(counter), masses.size(), std::ref(positions), std::ref(velocities), std::ref(forces), std::ref(masses), dt);
     }
 }
