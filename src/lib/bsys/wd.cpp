@@ -12,7 +12,7 @@ namespace tpool {
     void wd::await() {
 
         while (true) {
-            std::function<void()> func;
+            std::function<void()> function;
             {
                 std::unique_lock<std::mutex> lock(qmtx);
                 qcv.wait(lock, []{ return !queue.empty() || close; });
@@ -20,15 +20,16 @@ namespace tpool {
                 if (close) return;
 
                 if (!queue.empty()) {
-                    func = queue.front();
+
+                    function = queue.front();
                     queue.pop();
                     atasks++;
                 }
             }
 
-            if (func)
-            {
-                try {func(); } catch (...) {}
+            if (function) {
+
+                try {function(); } catch (...) {}
                 atasks--;
                 std::lock_guard<std::mutex> lock(qmtx);
             }
@@ -36,7 +37,9 @@ namespace tpool {
     }
 
     void wd::init(unsigned int tc) {
+
         if (!threads.empty()) assert("Double-Initialization of thread pool");
+
         unsigned int tcm = std::min(tc, std::thread::hardware_concurrency());
         threads.reserve(tcm);
 
