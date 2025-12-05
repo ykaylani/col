@@ -20,11 +20,11 @@ namespace tpool {
             template<typename Func, typename... Args>
             static void schedule(Func&& function, Args&&... args) {
                 std::lock_guard<std::mutex> lock(qmtx);
-                queue.push( [func = std::forward<Func>(function), tup = std::make_tuple(std::forward<Args>(args)...)]() mutable {std::apply(func, std::move(tup));} );
+                queue.push( [function = std::forward<Func>(function), tuple = std::make_tuple(std::forward<Args>(args)...)]() mutable {std::apply(function, std::move(tuple));} );
                 qcv.notify_one();
             }
 
-            static unsigned int inittc;
+            inline static unsigned int inittc;
 
         private:
             static void await();

@@ -4,9 +4,4 @@
 
 namespace clocks {
 
-    void clock::init() {
-        
-        
-        clock::clocks.emplace_back();
-    }
 }

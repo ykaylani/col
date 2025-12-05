@@ -12,7 +12,7 @@ namespace clocks{
             void sync();
         
         private:
-            std::vector<std::chrono::high_resolution_clock> clocks;
+            inline static std::chrono::steady_clock internal;
     };
 }
 

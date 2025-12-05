@@ -32,7 +32,6 @@ namespace tpool {
 
                 try {function(); } catch (...) {}
                 atasks--;
-                std::lock_guard<std::mutex> lock(qmtx);
             }
         }
     }

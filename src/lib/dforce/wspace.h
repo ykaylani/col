@@ -8,7 +8,7 @@ namespace wsforces {
 
     class g {
         public:
-            static void apply(float4x4a& __restrict particleblock, const float3a& __restrict direction);
+            static void apply(__m128& __restrict pbx, __m128& __restrict pby, __m128& __restrict pbz, const float3a& __restrict direction);
     };
 }
 
