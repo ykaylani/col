@@ -41,11 +41,11 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
 
                 __m128 vely = _mm_load_ps(velocities[vectoridx].y);
                 __m128 velz = _mm_load_ps(velocities[vectoridx].z);
-                __m128 forx = _mm_load_ps(forces[vectoridx].x);
-                __m128 fory = _mm_load_ps(forces[vectoridx].y);
-                __m128 forz = _mm_load_ps(forces[vectoridx].z);
+                __m128 forx = _mm_setzero_ps();
+                __m128 fory = _mm_setzero_ps();
+                __m128 forz = _mm_setzero_ps();
 
-                wsforces::applyall(forx, fory, forz);
+                wsforces::applyall(forx, fory, forz, massblock1);
                 __m128 r1 = _mm_div_ps(dts, massblock1);
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
@@ -66,11 +66,11 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 velx = _mm_load_ps(velocities[vidx2].x);
                 vely = _mm_load_ps(velocities[vidx2].y);
                 velz = _mm_load_ps(velocities[vidx2].z);
-                forx = _mm_load_ps(forces[vidx2].x);
-                fory = _mm_load_ps(forces[vidx2].y);
-                forz = _mm_load_ps(forces[vidx2].z);
+                forx = _mm_setzero_ps();
+                fory = _mm_setzero_ps();
+                forz = _mm_setzero_ps();
 
-                wsforces::applyall(forx, fory, forz);
+                wsforces::applyall(forx, fory, forz, massblock2);
                 r1 = _mm_div_ps(dts, massblock2);
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
@@ -91,11 +91,11 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 velx = _mm_load_ps(velocities[vidx3].x);
                 vely = _mm_load_ps(velocities[vidx3].y);
                 velz = _mm_load_ps(velocities[vidx3].z);
-                forx = _mm_load_ps(forces[vidx3].x);
-                fory = _mm_load_ps(forces[vidx3].y);
-                forz = _mm_load_ps(forces[vidx3].z);
+                forx = _mm_setzero_ps();
+                fory = _mm_setzero_ps();
+                forz = _mm_setzero_ps();
 
-                wsforces::applyall(forx, fory, forz);
+                wsforces::applyall(forx, fory, forz, massblock3);
                 r1 = _mm_div_ps(dts, massblock3);
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
@@ -116,11 +116,11 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 velx = _mm_load_ps(velocities[vidx4].x);
                 vely = _mm_load_ps(velocities[vidx4].y);
                 velz = _mm_load_ps(velocities[vidx4].z);
-                forx = _mm_load_ps(forces[vidx4].x);
-                fory = _mm_load_ps(forces[vidx4].y);
-                forz = _mm_load_ps(forces[vidx4].z);
+                forx = _mm_setzero_ps();
+                fory = _mm_setzero_ps();
+                forz = _mm_setzero_ps();
 
-                wsforces::applyall(forx, fory, forz);
+                wsforces::applyall(forx, fory, forz, massblock4);
                 r1 = _mm_div_ps(dts, massblock4);
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
