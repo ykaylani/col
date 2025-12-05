@@ -38,6 +38,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 __m128 posy = _mm_load_ps(positions[vectoridx].y);
                 __m128 posz = _mm_load_ps(positions[vectoridx].z);
                 __m128 velx = _mm_load_ps(velocities[vectoridx].x);
+
                 __m128 vely = _mm_load_ps(velocities[vectoridx].y);
                 __m128 velz = _mm_load_ps(velocities[vectoridx].z);
                 __m128 forx = _mm_load_ps(forces[vectoridx].x);

@@ -30,7 +30,11 @@ namespace tpool {
             if (function) {
 
                 try { function(); } catch (const std::exception& err) {std::cerr << err.what() << std::endl; }
-                atasks--;
+
+                {
+                    std::lock_guard<std::mutex> lock(qmtx);
+                    atasks--;
+                }
                 qcv.notify_all();
             }
         }
@@ -54,7 +58,7 @@ namespace tpool {
 
     void wd::wait() {
         std::unique_lock<std::mutex> lock(qmtx);
-        qcv.wait(lock, [this]{ return queue.empty() && atasks == 0; });
+        qcv.wait(lock, [this]{ return (queue.empty() && atasks == 0) || close; });
     }
 
     void wd::shut() {

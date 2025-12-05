@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <thread>
 #include "../src/data/ct.h"
@@ -5,11 +6,15 @@
 #include "../src/lib/bsys/wd.h"
 #include "lib/dglobal/integrators.h"
 
-float dt = 0.2;
-
 int main() {
+
+    float dt = 0;
+    std::chrono::time_point inittime = std::chrono::steady_clock::now();
+
     dynamics::dstore dynobj;
     tpool::wd threading;
+
+
     threading.init(std::thread::hardware_concurrency());
 
     dynobj.force.reserve(4);
@@ -44,6 +49,20 @@ int main() {
         dynobj.mass[0].w[i] = 10;
     }
 
-    dintegrators::symeuler(dt, dynobj.pos, dynobj.velocity, dynobj.force, dynobj.mass, threading);
+    int step = 0;
+
+    while (true) {
+
+        if (step == 1000) { return 0; }
+
+        std::chrono::time_point frametime = std::chrono::steady_clock::now();
+        std::chrono::duration<float> elapsed = frametime - inittime;
+        dt = elapsed.count();
+        inittime = frametime;
+
+        dintegrators::symeuler(dt, dynobj.pos, dynobj.velocity, dynobj.force, dynobj.mass, threading);
+        std::cout << "dintegrators::symeuler" << step << std::endl;
+        step++;
+    }
     return 0;
-}
+};
