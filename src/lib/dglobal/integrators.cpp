@@ -10,9 +10,9 @@
 
 namespace dintegrators { //Assumption: scalar types contain 4 times the number of particles compared to vector types. Array float4x4a "masses" holds data for 16 particles whilst Array float4x3a "positions" only holds data for 4 particles.
 
-    int batch = 64;
+    constexpr int batch = 64;
 
-    void psymeuler(std::atomic<int>& __restrict unprocessedblock, int tblocks, std::vector<float4x3a>& __restrict positions, std::vector<float4x3a>& __restrict velocities, std::vector<float4x3a>& __restrict forces, std::vector<float4x4a>& __restrict masses, float dt) {
+    void psymeuler(std::atomic<int>& unprocessedblock, int tblocks, std::vector<float4x3a>& __restrict positions, std::vector<float4x3a>& __restrict velocities, std::vector<float4x3a>& __restrict forces, std::vector<float4x4a>& __restrict masses, float dt) {
 
         while (true) {
             int scheduleindex = unprocessedblock.fetch_add(batch);
@@ -37,11 +37,9 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 __m128 posx = _mm_load_ps(positions[vectoridx].x);
                 __m128 posy = _mm_load_ps(positions[vectoridx].y);
                 __m128 posz = _mm_load_ps(positions[vectoridx].z);
-
                 __m128 velx = _mm_load_ps(velocities[vectoridx].x);
                 __m128 vely = _mm_load_ps(velocities[vectoridx].y);
                 __m128 velz = _mm_load_ps(velocities[vectoridx].z);
-
                 __m128 forx = _mm_load_ps(forces[vectoridx].x);
                 __m128 fory = _mm_load_ps(forces[vectoridx].y);
                 __m128 forz = _mm_load_ps(forces[vectoridx].z);
@@ -51,9 +49,9 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
                 velz = _mm_fmadd_ps(forz, r1, velz);
-                posx = _mm_add_ps(posx, _mm_mul_ps(velx, dts));
-                posy = _mm_add_ps(posy, _mm_mul_ps(vely, dts));
-                posz = _mm_add_ps(posz, _mm_mul_ps(velz, dts));
+                posx = _mm_fmadd_ps(velx, dts, posx);
+                posy = _mm_fmadd_ps(vely, dts, posy);
+                posz = _mm_fmadd_ps(velz, dts, posz);
                 _mm_store_ps(velocities[vectoridx].x, velx);
                 _mm_store_ps(velocities[vectoridx].y, vely);
                 _mm_store_ps(velocities[vectoridx].z, velz);
@@ -64,11 +62,9 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 posx = _mm_load_ps(positions[vidx2].x);
                 posy = _mm_load_ps(positions[vidx2].y);
                 posz = _mm_load_ps(positions[vidx2].z);
-
                 velx = _mm_load_ps(velocities[vidx2].x);
                 vely = _mm_load_ps(velocities[vidx2].y);
                 velz = _mm_load_ps(velocities[vidx2].z);
-
                 forx = _mm_load_ps(forces[vidx2].x);
                 fory = _mm_load_ps(forces[vidx2].y);
                 forz = _mm_load_ps(forces[vidx2].z);
@@ -78,9 +74,9 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
                 velz = _mm_fmadd_ps(forz, r1, velz);
-                posx = _mm_add_ps(posx, _mm_mul_ps(velx, dts));
-                posy = _mm_add_ps(posy, _mm_mul_ps(vely, dts));
-                posz = _mm_add_ps(posz, _mm_mul_ps(velz, dts));
+                posx = _mm_fmadd_ps(velx, dts, posx);
+                posy = _mm_fmadd_ps(vely, dts, posy);
+                posz = _mm_fmadd_ps(velz, dts, posz);
                 _mm_store_ps(velocities[vidx2].x, velx);
                 _mm_store_ps(velocities[vidx2].y, vely);
                 _mm_store_ps(velocities[vidx2].z, velz);
@@ -91,11 +87,9 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 posx = _mm_load_ps(positions[vidx3].x);
                 posy = _mm_load_ps(positions[vidx3].y);
                 posz = _mm_load_ps(positions[vidx3].z);
-
                 velx = _mm_load_ps(velocities[vidx3].x);
                 vely = _mm_load_ps(velocities[vidx3].y);
                 velz = _mm_load_ps(velocities[vidx3].z);
-
                 forx = _mm_load_ps(forces[vidx3].x);
                 fory = _mm_load_ps(forces[vidx3].y);
                 forz = _mm_load_ps(forces[vidx3].z);
@@ -105,9 +99,9 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
                 velz = _mm_fmadd_ps(forz, r1, velz);
-                posx = _mm_add_ps(posx, _mm_mul_ps(velx, dts));
-                posy = _mm_add_ps(posy, _mm_mul_ps(vely, dts));
-                posz = _mm_add_ps(posz, _mm_mul_ps(velz, dts));
+                posx = _mm_fmadd_ps(velx, dts, posx);
+                posy = _mm_fmadd_ps(vely, dts, posy);
+                posz = _mm_fmadd_ps(velz, dts, posz);
                 _mm_store_ps(velocities[vidx3].x, velx);
                 _mm_store_ps(velocities[vidx3].y, vely);
                 _mm_store_ps(velocities[vidx3].z, velz);
@@ -118,11 +112,9 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 posx = _mm_load_ps(positions[vidx4].x);
                 posy = _mm_load_ps(positions[vidx4].y);
                 posz = _mm_load_ps(positions[vidx4].z);
-
                 velx = _mm_load_ps(velocities[vidx4].x);
                 vely = _mm_load_ps(velocities[vidx4].y);
                 velz = _mm_load_ps(velocities[vidx4].z);
-
                 forx = _mm_load_ps(forces[vidx4].x);
                 fory = _mm_load_ps(forces[vidx4].y);
                 forz = _mm_load_ps(forces[vidx4].z);
@@ -132,9 +124,9 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
                 velz = _mm_fmadd_ps(forz, r1, velz);
-                posx = _mm_add_ps(posx, _mm_mul_ps(velx, dts));
-                posy = _mm_add_ps(posy, _mm_mul_ps(vely, dts));
-                posz = _mm_add_ps(posz, _mm_mul_ps(velz, dts));
+                posx = _mm_fmadd_ps(velx, dts, posx);
+                posy = _mm_fmadd_ps(vely, dts, posy);
+                posz = _mm_fmadd_ps(velz, dts, posz);
                 _mm_store_ps(velocities[vidx4].x, velx);
                 _mm_store_ps(velocities[vidx4].y, vely);
                 _mm_store_ps(velocities[vidx4].z, velz);

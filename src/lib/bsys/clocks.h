@@ -1,6 +1,5 @@
 #ifndef COL_CLOCKS_H
 #define COL_CLOCKS_H
-#include <vector>
 #include <chrono>
 
 namespace clocks{
