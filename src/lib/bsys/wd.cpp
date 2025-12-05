@@ -31,6 +31,7 @@ namespace tpool {
 
                 try { function(); } catch (const std::exception& err) {std::cerr << err.what() << std::endl; }
                 atasks--;
+                qcv.notify_all();
             }
         }
     }
