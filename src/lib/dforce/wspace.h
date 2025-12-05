@@ -10,6 +10,10 @@ namespace wsforces {
         public:
             static void apply(__m128& __restrict pbx, __m128& __restrict pby, __m128& __restrict pbz, const float3a& __restrict direction);
     };
+
+    static void applyall(__m128& __restrict pbx, __m128& __restrict pby, __m128& __restrict pbz) {
+        g::apply(pbx, pby, pbz, gmag);
+    }
 }
 
 #endif //COL_WORLDSPACE_H

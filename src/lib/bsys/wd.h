@@ -13,30 +13,30 @@ namespace tpool {
 
     class wd {
         public:
-            static void init(unsigned int tc);
-            static void shut();
-            static void wait();
+            void init(unsigned int tc);
+            void shut();
+            void wait();
         
             template<typename Func, typename... Args>
-            static void schedule(Func&& function, Args&&... args) {
+            void schedule(Func&& function, Args&&... args) {
                 std::lock_guard<std::mutex> lock(qmtx);
-                queue.push( [function = std::forward<Func>(function), tuple = std::make_tuple(std::forward<Args>(args)...)]() mutable {std::apply(function, std::move(tuple));} );
+                queue.push( [function = std::forward<Func>(function), tuple = std::make_tuple(std::forward<Args>(args)...)] {std::apply(function, tuple);} );
                 qcv.notify_one();
             }
 
-            inline static unsigned int inittc;
+            unsigned int inittc;
+            ~wd() { if (!close.load()) shut(); }
 
         private:
-            static void await();
+            void await();
 
-            inline static std::vector<std::thread> threads;
-            inline static std::queue<std::function<void()>> queue;
+            std::vector<std::thread> threads;
+            std::queue<std::function<void()>> queue;
 
-            inline static std::mutex qmtx;
-            inline static std::condition_variable qcv;
-            inline static std::atomic<bool> close = false;
-
-            inline static std::atomic<int> atasks{0};
+            std::mutex qmtx;
+            std::condition_variable qcv;
+            std::atomic<bool> close = false;
+            std::atomic<int> atasks{0};
     };
 }
 

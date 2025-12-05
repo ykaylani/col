@@ -8,5 +8,6 @@ add_executable(col src/main.cpp
         src/lib/dforce/wspace.cpp
         src/lib/dforce/lspace.cpp
         src/lib/bsys/wd.cpp
-        src/lib/bsys/clocks.cpp
+        src/data/scn/dstore.h
+        src/lib/bsys/aalloc.h
 )

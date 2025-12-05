@@ -3,14 +3,15 @@
 
 #include <vector>
 #include "../ct.h"
+#include "../../lib/bsys/aalloc.h"
 
 namespace dynamics {
     struct dstore {
 
-        std::vector<float4x4a> velocity;
-        std::vector<float4x4a> force;
-        std::vector<float4x4a> pos;
-        std::vector<float4x4a> mass;
+        std::vector<float4x3a, aalloc<float4x3a, 16>> velocity;
+        std::vector<float4x3a, aalloc<float4x3a, 16>> force;
+        std::vector<float4x3a, aalloc<float4x3a, 16>> pos;
+        std::vector<float4x4a, aalloc<float4x4a, 16>> mass;
     };
 }
 

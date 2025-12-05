@@ -6,13 +6,14 @@
 #include "../../data/ct.h"
 #include "../dforce/wspace.h"
 #include "../bsys/wd.h"
+#include "../bsys/aalloc.h"
 
 
 namespace dintegrators { //Assumption: scalar types contain 4 times the number of particles compared to vector types. Array float4x4a "masses" holds data for 16 particles whilst Array float4x3a "positions" only holds data for 4 particles.
 
     constexpr int batch = 64;
 
-    void psymeuler(std::atomic<int>& unprocessedblock, int tblocks, std::vector<float4x3a>& __restrict positions, std::vector<float4x3a>& __restrict velocities, std::vector<float4x3a>& __restrict forces, std::vector<float4x4a>& __restrict masses, float dt) {
+    void psymeuler(std::atomic<int>& unprocessedblock, int tblocks, std::vector<float4x3a, aalloc<float4x3a, 16>>& __restrict positions, std::vector<float4x3a, aalloc<float4x3a, 16>>& __restrict velocities, std::vector<float4x3a, aalloc<float4x3a, 16>>& __restrict forces, std::vector<float4x4a, aalloc<float4x4a, 16>>& __restrict masses, float dt) {
 
         while (true) {
             int scheduleindex = unprocessedblock.fetch_add(batch);
@@ -24,7 +25,6 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
 
                 int scalaridx = scheduleindex + i;
                 int vectoridx = scalaridx * 4;
-
                 int vidx2 = vectoridx + 1;
                 int vidx3 = vectoridx + 2;
                 int vidx4 = vectoridx + 3;
@@ -44,7 +44,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 __m128 fory = _mm_load_ps(forces[vectoridx].y);
                 __m128 forz = _mm_load_ps(forces[vectoridx].z);
 
-                wsforces::g::apply(forx, fory, forz, wsforces::gmag);
+                wsforces::applyall(forx, fory, forz);
                 __m128 r1 = _mm_div_ps(dts, massblock1);
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
@@ -69,7 +69,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 fory = _mm_load_ps(forces[vidx2].y);
                 forz = _mm_load_ps(forces[vidx2].z);
 
-                wsforces::g::apply(forx, fory, forz, wsforces::gmag);
+                wsforces::applyall(forx, fory, forz);
                 r1 = _mm_div_ps(dts, massblock2);
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
@@ -94,7 +94,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 fory = _mm_load_ps(forces[vidx3].y);
                 forz = _mm_load_ps(forces[vidx3].z);
 
-                wsforces::g::apply(forx, fory, forz, wsforces::gmag);
+                wsforces::applyall(forx, fory, forz);
                 r1 = _mm_div_ps(dts, massblock3);
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
@@ -119,7 +119,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
                 fory = _mm_load_ps(forces[vidx4].y);
                 forz = _mm_load_ps(forces[vidx4].z);
 
-                wsforces::g::apply(forx, fory, forz, wsforces::gmag);
+                wsforces::applyall(forx, fory, forz);
                 r1 = _mm_div_ps(dts, massblock4);
                 velx = _mm_fmadd_ps(forx, r1, velx);
                 vely = _mm_fmadd_ps(fory, r1, vely);
@@ -137,15 +137,15 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
         }
     }
 
-    void symeuler(float dt, std::vector<float4x3a>& positions, std::vector<float4x3a>& velocities, std::vector<float4x3a>& forces, std::vector<float4x4a>& masses) {
+    void symeuler(float dt, std::vector<float4x3a, aalloc<float4x3a, 16>>& positions, std::vector<float4x3a, aalloc<float4x3a, 16>>& velocities, std::vector<float4x3a, aalloc<float4x3a, 16>>& forces, std::vector<float4x4a, aalloc<float4x4a, 16>>& masses, tpool::wd& pool) {
 
         std::atomic<int> counter = 0;
-        unsigned int tc = tpool::wd::inittc;
+        unsigned int tc = pool.inittc;
 
         for (unsigned int i = 0; i < tc; i++) {
-            tpool::wd::schedule(psymeuler, std::ref(counter), masses.size(), std::ref(positions), std::ref(velocities), std::ref(forces), std::ref(masses), dt);
+            pool.schedule(psymeuler, std::ref(counter), masses.size(), std::ref(positions), std::ref(velocities), std::ref(forces), std::ref(masses), dt);
         }
 
-        tpool::wd::wait();
+        pool.wait();
     }
 }
