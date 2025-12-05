@@ -7,6 +7,7 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <condition_variable>
 
 namespace tpool {
 
@@ -15,7 +16,7 @@ namespace tpool {
             static void init(unsigned int tc);
             static void shut();
             static void wait();
-
+        
             template<typename Func, typename... Args>
             static void schedule(Func&& function, Args&&... args) {
                 std::lock_guard<std::mutex> lock(qmtx);
