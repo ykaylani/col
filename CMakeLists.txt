@@ -3,7 +3,7 @@ project(col)
 
 set(CMAKE_CXX_STANDARD 26)
 
-add_executable(col src/main.cpp
+add_executable(col src/lib/main.cpp
         src/lib/dglobal/integrators.cpp
         src/lib/dforce/wspace.cpp
         src/lib/dforce/lspace.cpp

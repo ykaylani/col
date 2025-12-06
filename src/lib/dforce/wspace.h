@@ -8,10 +8,10 @@ namespace wsforces {
 
     class g {
         public:
-            static void apply(__m128& pbx, __m128& pby, __m128& pbz, __m128& mas, const float3a& direction);
+            static void apply(__m256& pbx, __m256& pby, __m256& pbz, __m256& mas, const float3a& direction);
     };
 
-    static void applyall(__m128& pbx, __m128& pby, __m128& pbz, __m128& mas) {
+    static void applyall(__m256& pbx, __m256& pby, __m256& pbz, __m256& mas) {
         g::apply(pbx, pby, pbz, mas, gmag);
     }
 }

@@ -5,11 +5,19 @@
 #include "../ct.h"
 
 namespace Statics {
-    struct sstore { // only cubes allowed for now
 
-        std::vector<float3x5a> pos;
-        std::vector<float3x5a> size;
+    struct sobj {
+        float3 pos;
+        uint16_t vertcount;
+        uint16_t vertoffset;
+    };
+
+    struct sstore {
+
+        std::vector<sobj> objs;
+        std::vector<float3> verts;
+        std::vector<float3> normals;
     };
 }
 
-#endif COL_STATICS_H
+#endif //COL_STATICS_H

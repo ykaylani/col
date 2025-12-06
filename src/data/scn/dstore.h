@@ -6,12 +6,21 @@
 #include "../../lib/bsys/aalloc.h"
 
 namespace dynamics {
+
+    enum class meshtype : uint8_t {
+        Spherical = 0,
+        Cubic = 1
+    };
+
+
     struct dstore {
 
-        std::vector<float4x3a, aalloc<float4x3a, 16>> velocity;
-        std::vector<float4x3a, aalloc<float4x3a, 16>> force;
-        std::vector<float4x3a, aalloc<float4x3a, 16>> pos;
-        std::vector<float4x4a, aalloc<float4x4a, 16>> mass;
+        std::vector<float8x3a, aalloc<float8x3a, 32>> velocity;
+        std::vector<float8x3a, aalloc<float8x3a, 32>> pos;
+        std::vector<float8x4a, aalloc<float8x4a, 32>> mass;
+
+        std::vector<meshtype> mtype;
+        std::vector<float> ssize; //Would be radius for sphere, line segment for cubes
     };
 }
 

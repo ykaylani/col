@@ -3,6 +3,7 @@
 
 namespace lsforces {
     class lspace {
+
     };
 }
 
