@@ -23,6 +23,7 @@ void testsimloop(uint32_t particlecount, float dt, uint32_t stepcount) {
     dynobj.pos.reserve(vectoridx);
     dynobj.velocity.reserve(vectoridx);
     dynobj.mass.reserve(scalaridx);
+    dynobj.radii.reserve(scalaridx);
 
     for (int i = 0; i < vectoridx; i++) {
         dynobj.pos.emplace_back();
@@ -40,12 +41,18 @@ void testsimloop(uint32_t particlecount, float dt, uint32_t stepcount) {
 
     for (int i = 0; i < scalaridx; i++) {
         dynobj.mass.emplace_back();
+        dynobj.radii.emplace_back();
 
         for (int j = 0; j < 8; j++) {
             dynobj.mass[i].x[j] = 1.0 / 10.0;
             dynobj.mass[i].y[j] = 1.0 / 10.0;
             dynobj.mass[i].z[j] = 1.0 / 10.0;
             dynobj.mass[i].w[j] = 1.0 / 10.0;
+
+            dynobj.radii[i].x[j] = 10;
+            dynobj.radii[i].y[j] = 10;
+            dynobj.radii[i].z[j] = 10;
+            dynobj.radii[i].w[j] = 10;
         }
     }
 
@@ -56,7 +63,7 @@ void testsimloop(uint32_t particlecount, float dt, uint32_t stepcount) {
 
         if (step == stepcount) { break; }
 
-        dintegrators::symeuler(dt, dynobj.pos, dynobj.velocity, dynobj.mass, threading);
+        dintegrators::symeuler(dt, dynobj.pos, dynobj.velocity, dynobj.mass, dynobj.radii, threading);
         step++;
     }
 

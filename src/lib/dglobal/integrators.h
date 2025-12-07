@@ -6,7 +6,7 @@
 #include "../bsys/wd.h"
 
 namespace dintegrators {
-    void symeuler(float dt, std::vector<float8x3a, aalloc<float8x3a, 32>>& positions, std::vector<float8x3a, aalloc<float8x3a, 32>>& velocities, std::vector<float8x4a, aalloc<float8x4a, 32>>& masses, tpool::wd& pool);
+    void symeuler(float dt, std::vector<float8x3a, aalloc<float8x3a, 32>>& positions, std::vector<float8x3a, aalloc<float8x3a, 32>>& velocities, std::vector<float8x4a, aalloc<float8x4a, 32>>& masses, std::vector<float8x4a, aalloc<float8x4a, 32>>& radii, tpool::wd& pool);
 }
 
 #endif //COL_DYNINTEGRATORS_H

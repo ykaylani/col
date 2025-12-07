@@ -1,7 +1,5 @@
 #include <vector>
 #include <immintrin.h>
-#include <thread>
-#include <atomic>
 #include "integrators.h"
 #include "../../data/ct.h"
 #include "../dforce/wspace.h"
@@ -11,7 +9,7 @@
 
 namespace dintegrators { //Assumption: scalar types contain 4 times the number of particles compared to vector types. Array float4x4a "masses" holds data for 16 particles whilst Array float4x3a "positions" only holds data for 4 particles.
 
-    void psymeuler(int start, int end, std::vector<float8x3a, aalloc<float8x3a, 32>>& __restrict positions, std::vector<float8x3a, aalloc<float8x3a, 32>>& __restrict velocities, std::vector<float8x4a, aalloc<float8x4a, 32>>& __restrict masses, float dt) {
+    void psymeuler(int start, int end, std::vector<float8x3a, aalloc<float8x3a, 32>>& __restrict positions, std::vector<float8x3a, aalloc<float8x3a, 32>>& __restrict velocities, std::vector<float8x4a, aalloc<float8x4a, 32>>& __restrict masses, std::vector<float8x4a, aalloc<float8x4a, 32>>& __restrict radii, float dt) {
 
         __m256 dts = _mm256_set1_ps(dt);
 
@@ -23,10 +21,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
             int vidx3 = vectoridx + 2;
             int vidx4 = vectoridx + 3;
 
-            __m256 massblock1 = _mm256_load_ps(masses[scalaridx].x);
-            __m256 massblock2 = _mm256_load_ps(masses[scalaridx].y);
-            __m256 massblock3 = _mm256_load_ps(masses[scalaridx].z);
-            __m256 massblock4 = _mm256_load_ps(masses[scalaridx].w);
+            __m256 massblock = _mm256_load_ps(masses[scalaridx].x);
 
             __m256 posx = _mm256_load_ps(positions[vectoridx].x);
             __m256 posy = _mm256_load_ps(positions[vectoridx].y);
@@ -39,8 +34,8 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
             __m256 fory = _mm256_setzero_ps();
             __m256 forz = _mm256_setzero_ps();
 
-            wsforces::applyall(forx, fory, forz, massblock1);
-            __m256 r1 = _mm256_mul_ps(dts, massblock1);
+            wsforces::applyall(forx, fory, forz, velx, vely, velz, _mm256_load_ps(radii[scalaridx].x), massblock);
+            __m256 r1 = _mm256_mul_ps(dts, massblock);
             velx = _mm256_fmadd_ps(forx, r1, velx);
             vely = _mm256_fmadd_ps(fory, r1, vely);
             velz = _mm256_fmadd_ps(forz, r1, velz);
@@ -54,6 +49,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
             _mm256_store_ps(positions[vectoridx].y, posy);
             _mm256_store_ps(positions[vectoridx].z, posz);
 
+            massblock = _mm256_load_ps(masses[scalaridx].y);
             posx = _mm256_load_ps(positions[vidx2].x);
             posy = _mm256_load_ps(positions[vidx2].y);
             posz = _mm256_load_ps(positions[vidx2].z);
@@ -64,8 +60,8 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
             fory = _mm256_setzero_ps();
             forz = _mm256_setzero_ps();
 
-            wsforces::applyall(forx, fory, forz, massblock2);
-            r1 = _mm256_mul_ps(dts, massblock2);
+            wsforces::applyall(forx, fory, forz, velx, vely, velz, _mm256_load_ps(radii[scalaridx].y), massblock);
+            r1 = _mm256_mul_ps(dts, massblock);
             velx = _mm256_fmadd_ps(forx, r1, velx);
             vely = _mm256_fmadd_ps(fory, r1, vely);
             velz = _mm256_fmadd_ps(forz, r1, velz);
@@ -79,6 +75,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
             _mm256_store_ps(positions[vidx2].y, posy);
             _mm256_store_ps(positions[vidx2].z, posz);
 
+            massblock = _mm256_load_ps(masses[scalaridx].z);
             posx = _mm256_load_ps(positions[vidx3].x);
             posy = _mm256_load_ps(positions[vidx3].y);
             posz = _mm256_load_ps(positions[vidx3].z);
@@ -89,8 +86,8 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
             fory = _mm256_setzero_ps();
             forz = _mm256_setzero_ps();
 
-            wsforces::applyall(forx, fory, forz, massblock3);
-            r1 = _mm256_mul_ps(dts, massblock3);
+            wsforces::applyall(forx, fory, forz, velx, vely, velz, _mm256_load_ps(radii[scalaridx].z), massblock);
+            r1 = _mm256_mul_ps(dts, massblock);
             velx = _mm256_fmadd_ps(forx, r1, velx);
             vely = _mm256_fmadd_ps(fory, r1, vely);
             velz = _mm256_fmadd_ps(forz, r1, velz);
@@ -104,6 +101,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
             _mm256_store_ps(positions[vidx3].y, posy);
             _mm256_store_ps(positions[vidx3].z, posz);
 
+            massblock = _mm256_load_ps(masses[scalaridx].w);
             posx = _mm256_load_ps(positions[vidx4].x);
             posy = _mm256_load_ps(positions[vidx4].y);
             posz = _mm256_load_ps(positions[vidx4].z);
@@ -114,8 +112,8 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
             fory = _mm256_setzero_ps();
             forz = _mm256_setzero_ps();
 
-            wsforces::applyall(forx, fory, forz, massblock4);
-            r1 = _mm256_mul_ps(dts, massblock4);
+            wsforces::applyall(forx, fory, forz, velx, vely, velz, _mm256_load_ps(radii[scalaridx].w), massblock);
+            r1 = _mm256_mul_ps(dts, massblock);
             velx = _mm256_fmadd_ps(forx, r1, velx);
             vely = _mm256_fmadd_ps(fory, r1, vely);
             velz = _mm256_fmadd_ps(forz, r1, velz);
@@ -132,19 +130,19 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
 
     }
 
-    void symeuler(float dt, std::vector<float8x3a, aalloc<float8x3a, 32>>& positions, std::vector<float8x3a, aalloc<float8x3a, 32>>& velocities, std::vector<float8x4a, aalloc<float8x4a, 32>>& masses, tpool::wd& pool) {
+    void symeuler(float dt, std::vector<float8x3a, aalloc<float8x3a, 32>>& positions, std::vector<float8x3a, aalloc<float8x3a, 32>>& velocities, std::vector<float8x4a, aalloc<float8x4a, 32>>& masses, std::vector<float8x4a, aalloc<float8x4a, 32>>& radii, tpool::wd& pool) {
 
         unsigned int tc = pool.inittc;
         int blocks = masses.size();
 
-        if (blocks * 32 > 131072) {
+        if (blocks * 16 > 131072) {
 
             int cs = (blocks + tc - 1) / tc;
 
             for (unsigned int i = 0; i < tc; i++) {
                 int start = i * cs;
                 int end = std::min(start + cs, blocks);
-                pool.schedule(psymeuler, start, end, std::ref(positions), std::ref(velocities), std::ref(masses), dt);
+                pool.schedule(psymeuler, start, end, std::ref(positions), std::ref(velocities), std::ref(masses), std::ref(radii), dt);
             }
 
             pool.wait();
@@ -153,7 +151,7 @@ namespace dintegrators { //Assumption: scalar types contain 4 times the number o
             int start = 0;
             int end = blocks;
 
-            psymeuler(start, end, std::ref(positions), std::ref(velocities), std::ref(masses), dt);
+            psymeuler(start, end, std::ref(positions), std::ref(velocities), std::ref(masses), std::ref(radii), dt);
         }
     }
 }
