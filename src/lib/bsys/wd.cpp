@@ -13,6 +13,7 @@ namespace tpool {
 
         while (true) {
             std::function<void()> function;
+
             {
                 std::unique_lock<std::mutex> lock(qmtx);
                 qcv.wait(lock, [this]{ return !queue.empty() || close; });

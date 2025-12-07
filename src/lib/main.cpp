@@ -6,10 +6,9 @@
 #include "bsys/wd.h"
 #include "dglobal/integrators.h"
 
-void testsimloop(uint32_t particlecount, float dt, uint32_t stepcount) {
+void tsl(uint32_t particlecount, float dt, uint32_t stepcount) {
 
     std::cout << "Particle count: " << particlecount << " // dt: " << dt << " // stepcount: " << stepcount << std::endl;
-
     std::chrono::time_point<std::chrono::steady_clock> astart = std::chrono::steady_clock::now();
 
     dynamics::dstore dynobj;
@@ -85,10 +84,10 @@ int main() {
     int pc = 2;
     int iterations = 25;
 
-    for (int i = 5; i < iterations + 5; i++) {
+    for (int i = 4; i < iterations + 5; i++) {
 
-        testsimloop(pow(pc, i), 0.02, 1024);
+        tsl(pow(pc, i), 0.02, 1024);
     }
 
     return 0;
-};
+}
