@@ -28,7 +28,7 @@ void testsimloop(uint32_t particlecount, float dt, uint32_t stepcount) {
         dynobj.pos.emplace_back();
         dynobj.velocity.emplace_back();
 
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 8; j++) {
             dynobj.velocity[i].x[j] = 0;
             dynobj.velocity[i].y[j] = 0;
             dynobj.velocity[i].z[j] = 0;
@@ -41,7 +41,7 @@ void testsimloop(uint32_t particlecount, float dt, uint32_t stepcount) {
     for (int i = 0; i < scalaridx; i++) {
         dynobj.mass.emplace_back();
 
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 8; j++) {
             dynobj.mass[i].x[j] = 1.0 / 10.0;
             dynobj.mass[i].y[j] = 1.0 / 10.0;
             dynobj.mass[i].z[j] = 1.0 / 10.0;
@@ -66,6 +66,7 @@ void testsimloop(uint32_t particlecount, float dt, uint32_t stepcount) {
 
     std::cout << "Duration w/ Initialization: " << d << " ns" << std::endl;
     std::cout << "Duration w/o Initialization: " << d2 << " ns" << std::endl;
+    std::cout << "P1 Y-axis: " << dynobj.pos[0].y[0] << std::endl;
 
     std::cout << "Press Enter to continue...";
     std::cin.get();
@@ -77,7 +78,7 @@ int main() {
     int pc = 2;
     int iterations = 25;
 
-    for (int i = 2; i < iterations + 2; i++) {
+    for (int i = 5; i < iterations + 5; i++) {
 
         testsimloop(pow(pc, i), 0.02, 1024);
     }
