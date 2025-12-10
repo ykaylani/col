@@ -10,4 +10,5 @@ add_executable(col src/lib/main.cpp
         src/lib/bsys/wd.cpp
         src/data/scn/dstore.h
         src/lib/bsys/aalloc.h
+        src/lib/bcol/interleave.h
 )
