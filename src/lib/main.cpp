@@ -6,6 +6,9 @@
 #include "bsys/wd.h"
 #include "dglobal/integrators.h"
 
+const float pd = 2650.0f;
+const float rad = 0.01f;
+
 void tsl(uint32_t particlecount, float dt, uint32_t stepcount) {
 
     std::cout << "Particle count: " << particlecount << " // dt: " << dt << " // stepcount: " << stepcount << std::endl;
@@ -43,15 +46,20 @@ void tsl(uint32_t particlecount, float dt, uint32_t stepcount) {
         dynobj.radii.emplace_back();
 
         for (int j = 0; j < 8; j++) {
-            dynobj.mass[i].x[j] = 1.0 / 10.0;
-            dynobj.mass[i].y[j] = 1.0 / 10.0;
-            dynobj.mass[i].z[j] = 1.0 / 10.0;
-            dynobj.mass[i].w[j] = 1.0 / 10.0;
 
-            dynobj.radii[i].x[j] = 10;
-            dynobj.radii[i].y[j] = 10;
-            dynobj.radii[i].z[j] = 10;
-            dynobj.radii[i].w[j] = 10;
+            float volume = (4.0f/3.0f) * 3.1415927410125732 * rad * rad * rad;
+            float mass = pd * volume;
+            float rm = 1.0f / mass;
+
+            dynobj.mass[i].x[j] = rm;
+            dynobj.mass[i].y[j] = rm;
+            dynobj.mass[i].z[j] = rm;
+            dynobj.mass[i].w[j] = rm;
+
+            dynobj.radii[i].x[j] = rad;
+            dynobj.radii[i].y[j] = rad;
+            dynobj.radii[i].z[j] = rad;
+            dynobj.radii[i].w[j] = rad;
         }
     }
 
