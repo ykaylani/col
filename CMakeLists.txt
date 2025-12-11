@@ -11,4 +11,5 @@ add_executable(col src/lib/main.cpp
         src/data/scn/dstore.h
         src/lib/bsys/aalloc.h
         src/lib/bcol/interleave.h
+        src/lib/bcol/rsort.h
 )

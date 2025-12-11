@@ -1,49 +1,74 @@
 #ifndef COL_INTERLEAVE_H
 #define COL_INTERLEAVE_H
+#include <algorithm>
+#include <cstdint>
 #include <immintrin.h>
+#include "../../data/ct.h"
 
 namespace encoding {
 
-    constexpr int gres = 15;
+    constexpr int gres = 10;
     constexpr int mask = (1 << gres) - 1;
 
-    static __m256i interleave(__m256i val) {
+    static uint32_t interleave(uint32_t& val) {
 
-        val = _mm256_and_si256(_mm256_or_si256(val, _mm256_slli_epi32(val, 16)), _mm256_set1_epi32(0x030000FF));
-        val = _mm256_and_si256(_mm256_or_si256(val, _mm256_slli_epi32(val, 8)), _mm256_set1_epi32(0x0300F00F));
-        val = _mm256_and_si256(_mm256_or_si256(val, _mm256_slli_epi32(val, 4)), _mm256_set1_epi32(0x030C30C3));
-        val = _mm256_and_si256(_mm256_or_si256(val, _mm256_slli_epi32(val, 2)), _mm256_set1_epi32(0x49249249));
+        val = (val | (val << 16)) & 0x030000FF;
+        val = (val | (val << 8)) & 0x0300F00F;
+        val = (val | (val << 4)) & 0x030C30C3;
+        val = (val | (val << 2)) & 0x49249249;
+
         return val;
     }
 
-    static __m256i z3d(__m256i x, __m256i y, __m256i z, __m256i bmin, __m256i bmax) {
+    static __m256i hmin(__m256i v) {
 
-        x = _mm256_min_epi32(_mm256_max_epi32(x, bmin), bmax);
-        y = _mm256_min_epi32(_mm256_max_epi32(y, bmin), bmax);
-        z = _mm256_min_epi32(_mm256_max_epi32(z, bmin), bmax);
+        __m256i v2 = _mm256_permute2f128_si256(v, v, 1);
+        v = _mm256_min_epi32(v, v2);
 
-        int bmins = _mm_cvtsi128_si32(_mm256_castsi256_si128(bmin));
-        int bmaxs = _mm_cvtsi128_si32(_mm256_castsi256_si128(bmax));
+        v2 = _mm256_shuffle_epi32(v, 0x4E);
+        v = _mm256_min_epi32(v, v2);
 
-        const int range = bmaxs - bmins;
-        const int scale = ((mask << 16) + range - 1) / range;
+        v2 = _mm256_shuffle_epi32(v, 0xB1);
+        v = _mm256_min_epi32(v, v2);
 
-        __m256i scalev = _mm256_set1_epi32(scale);
+        return v;
+    }
 
-        __m256i nx = _mm256_sub_epi32(x, bmin);
-        __m256i ny = _mm256_sub_epi32(y, bmin);
-        __m256i nz = _mm256_sub_epi32(z, bmin);
+    static std::uint32_t z3db(const float8x3a& pos, int bmin, int bmax) {
 
-        nx = _mm256_mullo_epi32(nx, scalev);
-        nx = _mm256_srli_epi32(nx, 16);
+        __m256 xf = _mm256_load_ps(pos.x);
+        __m256 yf = _mm256_load_ps(pos.y);
+        __m256 zf = _mm256_load_ps(pos.z);
 
-        ny = _mm256_mullo_epi32(ny, scalev);
-        ny = _mm256_srli_epi32(ny, 16);
+        __m256i x = _mm256_cvtps_epi32(_mm256_mul_ps(xf, _mm256_set1_ps(65536.0f)));
+        __m256i y = _mm256_cvtps_epi32(_mm256_mul_ps(yf, _mm256_set1_ps(65536.0f)));
+        __m256i z = _mm256_cvtps_epi32(_mm256_mul_ps(zf, _mm256_set1_ps(65536.0f)));
 
-        nz = _mm256_mullo_epi32(nz, scalev);
-        nz = _mm256_srli_epi32(nz, 16);
+        __m256i bminv = _mm256_set1_epi32(bmin);
+        __m256i bmaxv = _mm256_set1_epi32(bmax);
+        x = _mm256_min_epi32(_mm256_max_epi32(x, bminv), bmaxv);
+        y = _mm256_min_epi32(_mm256_max_epi32(y, bminv), bmaxv);
+        z = _mm256_min_epi32(_mm256_max_epi32(z, bminv), bmaxv);
 
-        return _mm256_or_si256(_mm256_or_si256(interleave(nx), _mm256_slli_epi32(interleave(ny), 1)), _mm256_slli_epi32(interleave(nz), 2));
+        __m256i min_x = hmin(x);
+        __m256i min_y = hmin(y);
+        __m256i min_z = hmin(z);
+
+        int min_x_s = _mm256_extract_epi32(min_x, 0);
+        int min_y_s = _mm256_extract_epi32(min_y, 0);
+        int min_z_s = _mm256_extract_epi32(min_z, 0);
+
+        const int range = bmax - bmin;
+        const int scale = (mask << 16) / range;
+        int nx = ((min_x_s - bmin) * scale) >> 16;
+        int ny = ((min_y_s - bmin) * scale) >> 16;
+        int nz = ((min_z_s - bmin) * scale) >> 16;
+
+        nx = std::min(nx, mask);
+        ny = std::min(ny, mask);
+        nz = std::min(nz, mask);
+
+        return interleave(nx) | (interleave(ny) << 1) | (interleave(nz) << 2);
     }
 }
 
