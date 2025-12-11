@@ -31,7 +31,6 @@ namespace tpool {
             if (function) {
 
                 try { function(); } catch (const std::exception& err) {std::cerr << err.what() << std::endl; }
-
                 {
                     std::lock_guard<std::mutex> lock(qmtx);
                     atasks--;

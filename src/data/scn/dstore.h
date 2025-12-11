@@ -10,7 +10,9 @@ namespace dynamics {
     struct dstore {
 
         std::vector<float8x3a, aalloc<float8x3a, 32>> pos;
-        std::vector<uint32_t> blencpos;
+        std::vector<uint32_t> bpping; // encoded positions "ping"
+        std::vector<uint32_t> bppong; // encoded positions "pong"
+        bool ping;
 
         std::vector<float8x3a, aalloc<float8x3a, 32>> velocity;
         std::vector<float8x4a, aalloc<float8x4a, 32>> mass;
