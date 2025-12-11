@@ -7,8 +7,6 @@
 
 namespace dynamics {
 
-
-
     struct dstore {
 
         std::vector<float8x3a, aalloc<float8x3a, 32>> pos;

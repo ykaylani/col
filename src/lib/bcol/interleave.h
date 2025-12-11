@@ -50,19 +50,19 @@ namespace encoding {
         y = _mm256_min_epi32(_mm256_max_epi32(y, bminv), bmaxv);
         z = _mm256_min_epi32(_mm256_max_epi32(z, bminv), bmaxv);
 
-        __m256i min_x = hmin(x);
-        __m256i min_y = hmin(y);
-        __m256i min_z = hmin(z);
+        __m256i mx = hmin(x);
+        __m256i my = hmin(y);
+        __m256i mz = hmin(z);
 
-        int min_x_s = _mm256_extract_epi32(min_x, 0);
-        int min_y_s = _mm256_extract_epi32(min_y, 0);
-        int min_z_s = _mm256_extract_epi32(min_z, 0);
+        int mxs = _mm256_extract_epi32(mx, 0);
+        int mys = _mm256_extract_epi32(my, 0);
+        int mzs = _mm256_extract_epi32(mz, 0);
 
         const int range = bmax - bmin;
         const int scale = (mask << 16) / range;
-        int nx = ((min_x_s - bmin) * scale) >> 16;
-        int ny = ((min_y_s - bmin) * scale) >> 16;
-        int nz = ((min_z_s - bmin) * scale) >> 16;
+        int nx = ((mxs - bmin) * scale) >> 16;
+        int ny = ((mys - bmin) * scale) >> 16;
+        int nz = ((mzs - bmin) * scale) >> 16;
 
         nx = std::min(nx, mask);
         ny = std::min(ny, mask);
